@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "node build"
+  },
+  "dependencies": {
+    "jeefo_preprocessor": "^0.0.6",
+    "jeefo_tokenizer": "^0.0.29"
+  }
+}

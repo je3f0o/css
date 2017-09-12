@@ -1,0 +1,26 @@
+{
+  "name": "jeefo_css_preprocessor",
+  "version": "0.0.1",
+  "description": "Light weight CSS preprocessor for javascript.",
+  "author": {
+    "name": "je3f0o",
+    "email": "je3f0o@gmail.com"
+  },
+  "homepage": "https://github.com/je3f0o/jeefo_css_preprocessor",
+  "license": "MIT",
+  "copyright": "2017",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/je3f0o/jeefo_css_preprocessor.git"
+  },
+  "keywords": [
+    "utils",
+    "jeefo",
+    "jqlite",
+    "framework"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}
