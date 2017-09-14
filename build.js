@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : build.js
 * Created at  : 2017-08-24
-* Updated at  : 2017-09-12
+* Updated at  : 2017-09-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -54,11 +54,14 @@ var parse = content => {
 
 var files = [
 	"rule",
+	"scope",
 	"media",
-	"parser",
 	"index",
+	"parser",
+	"variable",
 	"tokenizer",
 	"declaration",
+	"parse_arguments",
 ];
 
 files.forEach(function (file) {

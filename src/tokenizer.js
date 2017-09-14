@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-12
+* Updated at  : 2017-09-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -19,11 +19,13 @@ var assign    = require("jeefo_utils/object/assign"),
 
 	DELIMITERS = [
 		';', ':',
+		'[', ']',
 		'(', ')',
 		'{', '}',
 		',', '~',
 		'+', '>',
-		'&',
+		'&', '*',
+		'=',
 	].join('');
 
 tokenizer.
@@ -50,6 +52,8 @@ register({
 register({
 	is : function (character) {
 		switch (character) {
+			case '=' :
+			case '*' :
 			case '&' :
 			case ',' :
 			case '@' :
@@ -57,6 +61,8 @@ register({
 			case '>' :
 			case ':' :
 			case ';' :
+			case '[' :
+			case ']' :
 			case '(' :
 			case ')' :
 			case '{' :

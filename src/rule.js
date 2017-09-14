@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : rule.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-12
+* Updated at  : 2017-09-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -13,38 +13,55 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var Declaration = require("./declaration");
-
 var MATH_MAX          = Math.max,
 	AND_SIGN_REGEX    = /\&/g,
 	SELECTOR_OPERATOR = /([\+\>])/g,
 
-replace_operator = function (m, op) {
-	return ` ${ op } `;
-};
+	Scope            = require("./scope"),
+	Variable         = require("./variable"),
+	Declaration      = require("./declaration"),
+	replace_operator = function (m, op) {
+		return ` ${ op } `;
+	},
 
-var except = function (tokenizer, type) {
-	var token = tokenizer.next();
-	if (token.type === type) {
-		return token;
-	}
+/*
+	has_space = function (character) {
+		switch (character) {
+			case '&' :
+			case '>' :
+			case '+' :
+			case '[' :
+			case ']' :
+			case '(' :
+			case ')' :
+				return false;
+			default:
+				if (character) {
+					return true;
+				}
+		}
+	},
+	*/
 
-	throw new Error("Unexpected token");
-},
-
-Rule = function (start) {
-	this.type          = "Rule";
-	this.selectors     = [];
-	this.declarations  = [];
-	this.related_rules = [];
-	this.start         = start;
+Rule = function (start, parent_scope) {
+	this.type         = "Rule";
+	this.scope        = new Scope(parent_scope);
+	this.selectors    = [];
+	this.declarations = [];
+	this.start        = start;
 };
 
 Rule.prototype = {
 	add_selector : function (selector, other_selectors) {
 		if (other_selectors) {
+			var has_reference = selector.indexOf('&') !== -1;
+
 			for (var i = 0; i < other_selectors.length; ++i) {
-				this.selectors.push(selector.replace(AND_SIGN_REGEX, other_selectors[i]));
+				if (has_reference) {
+					this.selectors.push(selector.replace(AND_SIGN_REGEX, other_selectors[i]));
+				} else {
+					this.selectors.push(`${ other_selectors[i] } ${ selector }`);
+				}
 			}
 		} else {
 			this.selectors.push(selector);
@@ -52,7 +69,8 @@ Rule.prototype = {
 	},
 
 	parse_selectors : function (tokenizer, other_selectors) {
-		var token = tokenizer.next(), selector = '', next, character;
+		var token = tokenizer.next(), selector = '',
+			next, character, except_paren, except_square;
 
 		LOOP:
 		while (token) {
@@ -63,9 +81,15 @@ Rule.prototype = {
 						case '&' :
 						case '>' :
 						case '+' :
+						case '[' :
+						case ']' :
+						case '(' :
+						case ')' :
 							break;
 						default:
-							selector += ' ';
+							if (selector) {
+								selector += ' ';
+							}
 					}
 				}
 				selector += token.name;
@@ -84,9 +108,42 @@ Rule.prototype = {
 					case '>' :
 						selector += '>';
 						break;
+					case '*' :
+						character = selector.charAt(selector.length - 1);
+						switch (character) {
+							case '>' :
+							case '+' :
+								break;
+							default:
+								if (selector) {
+									selector += ' ';
+								}
+						}
+						selector += '*';
+						break;
 					case '[' :
-						console.log("Implement me", token);
-						process.exit();
+						selector += '[';
+						except_square = true;
+						break;
+					case ']' :
+						if (except_square) {
+							selector += ']';
+							except_square = false;
+						} else {
+							throw new Error("Unexpected token");
+						}
+						break;
+					case '(' :
+						selector += '(';
+						except_paren = true;
+						break;
+					case ')' :
+						if (except_paren) {
+							selector += ')';
+							except_paren = false;
+						} else {
+							throw new Error("Unexpected token");
+						}
 						break;
 					case '{' :
 						this.add_selector(selector, other_selectors);
@@ -103,9 +160,14 @@ Rule.prototype = {
 					selector += ':';
 				}
 
-				token     = next;
-				next      = except(tokenizer, "Identifier");
-				selector += next.name;
+				token = next;
+				next  = tokenizer.next();
+
+				if (next.name) {
+					selector += next.name;
+				} else {
+					throw new Error("Unexpected token");
+				}
 
 				token = tokenizer.next();
 			} else {
@@ -118,7 +180,7 @@ Rule.prototype = {
 		var streamer = tokenizer.streamer,
 			cursor   = streamer.get_cursor(),
 			token    = tokenizer.next(),
-			next, rule, declaration;
+			_var, next, rule, declaration;
 
 		while (token) {
 			if (token.delimiter === '}') {
@@ -126,25 +188,32 @@ Rule.prototype = {
 				break;
 			}
 
-			next = tokenizer.next();
+			if (token.name && token.name.charAt(0) === '$') {
+				_var = new Variable(token);
+				_var.parse_value(tokenizer);
 
-			if (token.type === "Identifier" && next.delimiter === ':') {
-				declaration = new Declaration(token);
-				declaration.parse_values(tokenizer);
-				this.declarations.push(declaration); 
-
-				if (tokenizer.streamer.peek(declaration.end.index - 1) === '}') {
-					this.end = declaration.end;
-					break;
-				}
+				this.scope.variables[_var.name] = _var;
 			} else {
-				rule = new Rule(token.start);
+				next = tokenizer.next();
 
-				streamer.cursor = cursor;
-				rule.parse_selectors(tokenizer, this.selectors);
-				rule.parse_body(tokenizer);
+				if (token.name && next.delimiter === ':') {
+					declaration = new Declaration(token);
+					declaration.parse_values(tokenizer, this.scope);
+					this.declarations.push(declaration); 
 
-				this.related_rules.push(rule);
+					if (tokenizer.streamer.peek(declaration.end.index - 1) === '}') {
+						this.end = declaration.end;
+						break;
+					}
+				} else {
+					rule = new Rule(token.start, this.scope);
+
+					streamer.cursor = cursor;
+					rule.parse_selectors(tokenizer, this.selectors);
+					rule.parse_body(tokenizer);
+
+					this.scope.rules.push(rule);
+				}
 			}
 
 			cursor = streamer.get_cursor();
@@ -163,7 +232,7 @@ Rule.prototype = {
 		});
 
 		for (i = 0; i < this.declarations.length; ++i) {
-			rules.push(this.declarations[i].compile_beauty(max));
+			rules.push(this.declarations[i].compile_beauty(this.scope, max));
 		}
 
 		if (rules.length) {
@@ -171,18 +240,18 @@ Rule.prototype = {
 				this.selectors[i] = this.selectors[i].replace(SELECTOR_OPERATOR, replace_operator);
 				max = MATH_MAX(this.selectors[i].length, max);
 			}
-			result = `${ this.selectors.join(",\n") } {\n\t${ rules.join(";\n\t") }\n}`;
+			result = `${ this.selectors.join(",\n") } {\n\t${ rules.join(";\n\t") };\n}`;
 		}
 
-		if (this.related_rules.length) {
+		if (this.scope.rules.length) {
 			if (result) {
 				result += '\n';
 			}
 
-			for (i = 0; i < this.related_rules.length; ++i) {
-				result += this.related_rules[i].compile_beauty();
+			for (i = 0; i < this.scope.rules.length; ++i) {
+				result += this.scope.rules[i].compile_beauty();
 
-				if (i + 1 < this.related_rules.length) {
+				if (i + 1 < this.scope.rules.length) {
 					result += '\n';
 				}
 			}
@@ -195,15 +264,15 @@ Rule.prototype = {
 		var i = 0, rules = [], result = '';
 
 		for (; i < this.declarations.length; ++i) {
-			rules.push(this.declarations[i].compile_ugly());
+			rules.push(this.declarations[i].compile_ugly(this.scope));
 		}
 
 		if (rules.length) {
 			result = `${ this.selectors.join(',') }{${ rules.join(';') }}`;
 		}
 
-		for (i = 0; i < this.related_rules.length; ++i) {
-			result += this.related_rules[i].compile_ugly();
+		for (i = 0; i < this.scope.rules.length; ++i) {
+			result += this.scope.rules[i].compile_ugly(this.scope);
 		}
 
 		return result;

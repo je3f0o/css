@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-12
+* Updated at  : 2017-09-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -13,17 +13,25 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var Declaration     = require("../dist/declaration"),
-	CssPreprocessor = require("../dist/index"),
+var Declaration     = require("../src/declaration"),
+	CssPreprocessor = require("../src/index"),
 	pp = new CssPreprocessor(),
 	WHITE_SPACE_REGEX = /\s+/;
 
 var code = `
+
+$primary-color    = blue;
+$primary-contrast = white;
+
 .md-scrollable-content {
-	minW : 100%;
+	bgc   : $primary-color;
+	minW  : 100%;
+	color : $primary-contrast;
 }
 .md-scrollable-track {
-	z          : 1;
+	$zIndex = 123;
+
+	z          : $zIndex;
 	abs        : right 0;
 	bgc        : transparent;
 	opacity    : 0;
@@ -88,6 +96,22 @@ var code = `
 		opacity : .9;
 	}
 }
+
+.md-card {
+	margin     : 8px;
+	box-sizing : border-box;
+
+	boxOrient : vertical;
+	boxShadow :
+		0 1px 3px 0 rgba(0,0,0,.2),
+		0 1px 1px 0 rgba(0,0,0,.14),
+		0 2px 1px -1px rgba(0,0,0,.12);
+	flexDirection : column;
+}
+
+.md-button.md-raised:not( [ disabled ] ) {
+	boxShadow : 0 2px 5px 0 rgba(0,0,0,.26);
+}
 `;
 
 var border_handler = () => {};
@@ -131,4 +155,6 @@ register("pos", function (current_declaration, index, declarations) {
 }).
 register("border-radius", border_handler);
 
-console.log(pp.parse(code, true));
+var rules = pp.parse(code);
+
+console.log(pp.compile(rules, true));

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2017-09-12
-* Updated at  : 2017-09-12
+* Updated at  : 2017-09-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -19,13 +19,14 @@ CssPreprocessor.prototype = {
 		return this;
 	},
 
-	process : function (tokens) {
-		var i          = tokens.length,
+	process : function (scope) {
+		var rules      = scope.rules,
+			i          = rules.length,
 			processors = this.processors,
 			j, k, declarations;
 
 		while (i--) {
-			declarations = tokens[i].declarations;
+			declarations = rules[i].declarations;
 			j = declarations.length;
 
 			while (j--) {
@@ -36,14 +37,16 @@ CssPreprocessor.prototype = {
 				}
 			}
 
-			this.process(tokens[i].related_rules);
+			this.process(rules[i].scope);
 		}
 	},
 
-	parse : function (code, is_beauty, tab_space) {
-		var i = 0, rules = parser(code, tab_space), result = '';
+	parse : function (code, scope, tab_space) {
+		return parser(code, scope, tab_space);
+	},
 
-		this.process(rules);
+	compile : function (scope, is_beauty) {
+		var i = 0, rules = scope.rules, result = '';
 
 		for (; i < rules.length; ++i) {
 			if (is_beauty) {
