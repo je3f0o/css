@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-13
+* Updated at  : 2017-11-03
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -22,6 +23,22 @@ var code = `
 
 $primary-color    = blue;
 $primary-contrast = white;
+
+@keyframes md-ripple-remove {
+	0% {
+		color   : $primary-color;
+		opacity : .15;
+	}
+	to {
+		opacity : 0;
+	}
+}
+
+test {
+	> * + * {
+		hello : world;
+	}
+}
 
 .md-scrollable-content {
 	bgc   : $primary-color;
@@ -42,7 +59,7 @@ $primary-contrast = white;
 	w   : 15px;
 	pos : top 222, bottom 0;
 
-	& > .md-scrollable-scrollbar {
+	> .md-scrollable-scrollbar {
 		w     : 6px;
 		right : 2px;
 	}
@@ -58,7 +75,7 @@ $primary-contrast = white;
 	h   : 15px;
 	pos : left 0, bottom 0;
 
-	& > .md-scrollable-scrollbar {
+	> .md-scrollable-scrollbar {
 		h      : 6px;
 		bottom : 2px;
 	}
@@ -90,8 +107,8 @@ $primary-contrast = white;
 		opacity : .6;
 	}
 
-	& > .md-scrollable-track:hover,
-	& > .md-scrollable-track.md-active {
+	> .md-scrollable-track:hover,
+	> .md-scrollable-track.md-active {
 		bgc     : #eee;
 		opacity : .9;
 	}
@@ -107,6 +124,10 @@ $primary-contrast = white;
 		0 1px 1px 0 rgba(0,0,0,.14),
 		0 2px 1px -1px rgba(0,0,0,.12);
 	flexDirection : column;
+
+	card-inside {
+		zzz : fff;
+	}
 }
 
 .md-button.md-raised:not( [ disabled ] ) {

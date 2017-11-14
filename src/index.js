@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2017-09-12
-* Updated at  : 2017-09-13
+* Updated at  : 2017-11-02
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -29,21 +30,37 @@ CssPreprocessor.prototype = {
 		var rules      = scope.rules,
 			i          = rules.length,
 			processors = this.processors,
-			j, k, declarations;
+			j, k, frames, declarations;
 
 		while (i--) {
-			declarations = rules[i].declarations;
-			j = declarations.length;
+			switch (rules[i].type) {
+				case "Rule" :
+					declarations = rules[i].declarations;
+					j = declarations.length;
 
-			while (j--) {
-				k = processors.length;
+					while (j--) {
+						if (processors[declarations[j].property]) {
+							processors[declarations[j].property](declarations[j], j, declarations);
+						}
+					}
+					this.process(rules[i].scope);
+					break;
+				case "Keyframe" :
+					frames = rules[i].frames;
+					j      = frames.length;
 
-				if (processors[declarations[j].property]) {
-					processors[declarations[j].property](declarations[j], j, declarations);
-				}
+					while (j--) {
+						declarations = frames[i].declarations;
+						k = declarations.length;
+
+						while (k--) {
+							if (processors[declarations[k].property]) {
+								processors[declarations[k].property](declarations[k], k, declarations);
+							}
+						}
+					}
+					break;
 			}
-
-			this.process(rules[i].scope);
 		}
 	},
 

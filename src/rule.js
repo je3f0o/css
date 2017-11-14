@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : rule.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-13
+* Updated at  : 2017-11-03
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -15,7 +16,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 var MATH_MAX          = Math.max,
 	AND_SIGN_REGEX    = /\&/g,
-	SELECTOR_OPERATOR = /([\+\>])/g,
+	SELECTOR_OPERATOR = /([>~\+])/g,
 
 	Scope            = require("./scope"),
 	Variable         = require("./variable"),
@@ -59,6 +60,8 @@ Rule.prototype = {
 			for (var i = 0; i < other_selectors.length; ++i) {
 				if (has_reference) {
 					this.selectors.push(selector.replace(AND_SIGN_REGEX, other_selectors[i]));
+				} else if ("~+>".indexOf(selector.charAt(0)) !== -1) {
+					this.selectors.push(`${ other_selectors[i] }${ selector }`);
 				} else {
 					this.selectors.push(`${ other_selectors[i] } ${ selector }`);
 				}
@@ -81,6 +84,7 @@ Rule.prototype = {
 						case '&' :
 						case '>' :
 						case '+' :
+						case '~' :
 						case '[' :
 						case ']' :
 						case '(' :
@@ -96,7 +100,10 @@ Rule.prototype = {
 			} else {
 				switch (token.delimiter) {
 					case '&' :
-						selector += '&';
+					case '>' :
+					case '~' :
+					case '+' :
+						selector += token.delimiter;
 						break;
 					case ',' :
 						if (! selector) {
@@ -105,13 +112,11 @@ Rule.prototype = {
 						this.add_selector(selector, other_selectors);
 						selector = '';
 						break;
-					case '>' :
-						selector += '>';
-						break;
 					case '*' :
 						character = selector.charAt(selector.length - 1);
 						switch (character) {
 							case '>' :
+							case '~' :
 							case '+' :
 								break;
 							default:
@@ -198,7 +203,7 @@ Rule.prototype = {
 
 				if (token.name && next.delimiter === ':') {
 					declaration = new Declaration(token);
-					declaration.parse_values(tokenizer, this.scope);
+					declaration.parse_values(tokenizer);
 					this.declarations.push(declaration); 
 
 					if (tokenizer.streamer.peek(declaration.end.index - 1) === '}') {

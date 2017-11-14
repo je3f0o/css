@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "test": "./node_modules/mocha/bin/mocha specs/*_specs.js",
     "build": "node build"
   },
   "dependencies": {

@@ -1,45 +1,20 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : declaration.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-13
+* Updated at  : 2017-09-30
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
 
 // ignore:end
 
-var parse_arguments = function (tokenizer) {
-	var	token = tokenizer.next(), value = '(';
-
-	LOOP:
-	while (token) {
-		if (token.name) {
-			value += token.name;
-		} else {
-			throw new Error("Unexpected token");
-		}
-
-		token = tokenizer.next();
-		switch (token.delimiter) {
-			case ',' :
-				value += ',';
-				token = tokenizer.next();
-				break;
-			case ')' :
-				value += ')';
-				break LOOP;
-			default:
-				throw new Error("Unexpected token");
-		}
-	}
-
-	return value;
-};
+var parse_arguments = require("./parse_arguments");
 
 var Declaration = function (token) {
 	this.type     = "Declaration";

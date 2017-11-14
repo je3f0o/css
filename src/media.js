@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : media.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-10
+* Updated at  : 2017-11-03
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -16,11 +17,6 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 var Rule = require("./rule");
 
 module.exports = function Media (token, tokenizer) {
-	var next = tokenizer.next();
-	if (next.start.index !== token.end.index || next.name !== "media") {
-		throw new Error("Unexpected token");
-	}
-
 	this.type  = "Media";
 	this.media = [];
 	this.rules = [];

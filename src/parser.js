@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-09-10
-* Updated at  : 2017-09-13
+* Updated at  : 2017-11-02
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -16,6 +17,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 var Rule      = require("./rule"),
 	Scope     = require("./scope"),
 	Media     = require("./media"),
+	Keyframe  = require("./keyframe"),
 	Variable  = require("./variable"),
 	tokenizer = require("./tokenizer");
 
@@ -27,11 +29,26 @@ module.exports = function css_parser (source_code, scope, tab_space) {
 
 	var streamer = tokenizer.streamer,
 		cursor   = streamer.get_cursor(),
-		token    = tokenizer.next(), rule, _var;
+		token    = tokenizer.next(), rule, _var, next;
 
 	while (token) {
 		if (token.delimiter === '@') {
-			scope.rules.push(new Media(token, tokenizer));
+			next = tokenizer.next();
+
+			if (token.end.index !== next.start.index) {
+				throw new Error("Unexpected token");
+			}
+
+			switch (next.name) {
+				case "media" :
+					scope.rules.push(new Media(token.start, tokenizer));
+					break;
+				case "keyframes" :
+					scope.rules.push(new Keyframe(token.start, tokenizer, scope));
+					break;
+				default:
+					throw new Error("Unexpected token");
+			}
 		} else if (token.name.charAt(0) === '$') {
 			_var = new Variable(token);
 			_var.parse_value(tokenizer);

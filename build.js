@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : build.js
 * Created at  : 2017-08-24
-* Updated at  : 2017-09-13
+* Updated at  : 2017-11-14
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -59,6 +60,7 @@ var files = [
 	"index",
 	"parser",
 	"variable",
+	"keyframe",
 	"tokenizer",
 	"declaration",
 	"parse_arguments",
